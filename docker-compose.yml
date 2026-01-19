@@ -18,8 +18,8 @@ services:
     env_file: .env
     build: ./frontend/
 
-  gateway:
-    build: ./gateway/
+  nginx:
+    build: ./nginx/
     volumes:
       - static:/staticfiles
     ports:
