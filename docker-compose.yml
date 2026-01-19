@@ -1,6 +1,7 @@
 volumes:
   pg_data:
   static:
+  media:
 
 services:
   db:
@@ -8,12 +9,14 @@ services:
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
-      
+
   backend:
     build: ./backend/
     env_file: .env
     volumes:
       - static:/backend_static
+      - media:/app/media
+
   frontend:
     env_file: .env
     build: ./frontend/
@@ -22,5 +25,6 @@ services:
     build: ./nginx/
     volumes:
       - static:/staticfiles
+      - media:/mediafiles
     ports:
       - 8000:80

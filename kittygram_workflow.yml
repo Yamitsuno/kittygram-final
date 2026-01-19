@@ -60,7 +60,7 @@ jobs:
         with:
           context: ./backend/
           push: true
-          tags: yamitsuno/kittygram_backend:latest 
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_backend:latest 
 
   frontend_tests:
     runs-on: ubuntu-latest
@@ -100,7 +100,7 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: yamitsuno/kittygram_frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
 
   build_nginx_and_push_to_docker_hub:
     name: Push nginx Docker image to DockerHub
@@ -120,7 +120,7 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: yamitsuno/kittygram_nginx:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_nginx:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -156,16 +156,19 @@ jobs:
             sudo docker compose -f docker-compose.production.yml up -d
             # Выполняет миграции и сбор статики
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
-            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
-            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --no-input
 
   send_message:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-    - name: Send message
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой успешно выполнен!
+      - name: Send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            Деплой успешно выполнен!
+            Автор: ${{ github.actor }}
+            Коммит: ${{ github.event.commits[0].message }}
+            Ссылка: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
